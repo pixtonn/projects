@@ -1,0 +1,103 @@
+1. exec.c prints out the pid and then waits 30 seconds to be given a new process. If given a new process it runs that instead, switching with execve(). If not given a process, then it prints that it was not given one and exits 
+
+2. The final print is only printed when a non-executable (bad argument) is given as an argument for exec 
+
+3. ./exec /bin/cat    
+Program "./exec" has pid 3596417. Sleeping. 
+Running exec of "/bin/cat" 
+
+4. ps p 3599869 –o user,pid,ppid,state,ucmd 
+OUTPUT: pixtonn  3599869 3595514 S exec 
+ps p 3599869 –o user,pid,ppid,state,ucmd 
+OUTPUT: pixtonn  3599869 3595514 S cat 
+
+5. they are exactly the same other than the command because execve keeps the pid and all other info the same, only changing the command being run 
+
+6. Program "./exec" has pid 3600448. Sleeping.
+Running exec of "fake"
+End of program "./exec".
+
+Because fake did not run as an executable, the execve returned and exec.c continued running to completion
+
+7. The process forks, creating a child. If there is an error it prints an error for fork and exits. Otherwise it continues and both child and parent run Section A. Section B  is run by the child and Section C by the parent. Because Section C sleeps for 30 seconds twice it will finish after Section B. Both exit on completion so I am not sure how Section D would ever be run
+
+8. child runs sections: A and B
+   parent runs sections: A and C
+
+9. RUN: ./fork
+OUTPUT: Starting program; process has pid 3602240
+Section A;  pid 3602240
+Section A;  pid 3602241
+Section C
+Section B
+Section B done sleeping
+Section C done sleeping
+RUN: ps -C fork -o user,pid,ppid,state,ucmd --forest
+OUTPUT: USER         PID    PPID S CMD
+pixtonn  3602240 3595514 S fork
+pixtonn  3602241 3602240 S  \_ fork
+RUN: ps -C fork -o user,pid,ppid,state,ucmd --forest
+OUTPUT: USER         PID    PPID S CMD
+pixtonn  3602240 3595514 S fork
+pixtonn  3602241 3602240 Z  \_ fork <defunct>
+
+10. The first fork is the same in both because it is the child that is running in both. The second is the parent which is finished but not reaped after 30 seconds have passed
+
+11. wait(0) should be added in Section C between the 2 sleep command to reap the parent while the child still runs
+
+12. RUN: ./fork
+OUTPUT: Starting program; process has pid 3607101
+Section A;  pid 3607101
+Section A;  pid 3607102
+Section C
+Section B
+Section C done sleeping
+30 Seconds later: Section B done sleeping
+RUN: ps -C fork -o user,pid,ppid,state,ucmd --forest
+OUTPUT: USER         PID    PPID S CMD
+pixtonn  3607101 3595514 S fork
+pixtonn  3607102 3607101 S  \_ fork
+RUN: ps -C fork -o user,pid,ppid,state,ucmd --forest
+OUTPUT: USER         PID    PPID S CMD
+pixtonn  3607102       1 S fork
+
+13. They both have the same parent process but the child gets reaped by the system when it calls exit so it does not appear
+
+14. OUTPUT: SECTION A
+SECTION B
+SECTION A
+SECTION C
+
+15. Both parent and child can write to the file, but the order shows that the child process ran before the parent
+
+16. OUTPUT: Starting program; process has pid 3634138
+Section A;  pid 3634138
+Section A;  pid 3634139
+Section B
+Section B done sleeping
+hello from Section B
+Section C
+Section C done sleeping
+
+17. OUTPUT: Starting program; process has pid 3635270
+Section A;  pid 3635270
+Section A;  pid 3635271
+Section B
+Section B done sleeping
+Program "./fork" has pid 3635271. Sleeping.
+Running exec of "/bin/cat"
+foobar
+Section C
+Section C done sleeping
+
+18. OUTPUT: Starting program; process has pid 3636115
+Section A;  pid 3636115
+Section A;  pid 3636116
+Section B
+Section B done sleeping
+Program "./fork" has pid 3636116. Sleeping.
+Running exec of "/bin/cat"
+foobar
+Section C
+Section C done sleeping
+

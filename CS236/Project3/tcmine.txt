@@ -1,0 +1,16 @@
+# For use ONLY during the Fall 2019 semester
+# Copyright Cory Barker, Brigham Young University, August 2019
+
+Schemes:
+  Fox(A,B,C)
+  gOAT(aMINAL,sTUBBORN)
+Facts:
+  gOAT('kids','cans').
+  gOAT('kids','').
+  gOAT('','').
+Rules:
+  Fox(a,b,c) :- Fox(a,b,c).
+Queries:
+  gOAT(POSTERITY,'cans')?
+  
+
